@@ -377,15 +377,21 @@ def main():
             })
             daily_combo = pd.concat([daily_hist, pred_row], ignore_index=True)
             
+            # Convert Date to string so Plotly treats it as a categorical axis, 
+            # preventing huge empty gaps when target_date is far in the future
+            daily_combo['Date_str'] = daily_combo['Date'].dt.strftime('%b %d, %Y')
+            
             # Display recent actuals and the future forecast as separate, clear visual elements
             fig_col1, fig_col2 = st.columns([1.5, 1])
             
             with fig_col1:
                 # Historical trend + new forecast
-                fig_hist = px.bar(daily_combo, x='Date', y='Units Sold', color='Type',
+                fig_hist = px.bar(daily_combo, x='Date_str', y='Units Sold', color='Type',
                                   title=f"14-Day Trend & Forecast ({category} - {region})",
+                                  labels={'Date_str': 'Date'},
                                   color_discrete_map={'Actual': '#10B981', 'Predicted': '#3B82F6'})
                 fig_hist.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=10, l=10, r=10), font=dict(family="Inter"))
+                fig_hist.update_xaxes(type='category') # Enforce categorical axis
                 st.plotly_chart(fig_hist, use_container_width=True)
                 
             with fig_col2:
