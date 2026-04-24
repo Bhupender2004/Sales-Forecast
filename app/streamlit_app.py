@@ -369,14 +369,22 @@ def main():
             daily_hist = filtered_hist.groupby('Date')['Units Sold'].sum().reset_index().tail(14) # last 14 days
             daily_hist['Type'] = 'Actual'
             
+            # Append predicted value to the chart
+            pred_row = pd.DataFrame({
+                'Date': [pd.to_datetime(target_date)],
+                'Units Sold': [predicted_units],
+                'Type': ['Predicted']
+            })
+            daily_combo = pd.concat([daily_hist, pred_row], ignore_index=True)
+            
             # Display recent actuals and the future forecast as separate, clear visual elements
             fig_col1, fig_col2 = st.columns([1.5, 1])
             
             with fig_col1:
-                # Just the isolated recent historical trend
-                fig_hist = px.bar(daily_hist, x='Date', y='Units Sold', 
-                                  title=f"Recent 14-Day Sales Trend ({category} - {region})",
-                                  color_discrete_sequence=['#10B981'])
+                # Historical trend + new forecast
+                fig_hist = px.bar(daily_combo, x='Date', y='Units Sold', color='Type',
+                                  title=f"14-Day Trend & Forecast ({category} - {region})",
+                                  color_discrete_map={'Actual': '#10B981', 'Predicted': '#3B82F6'})
                 fig_hist.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=10, l=10, r=10), font=dict(family="Inter"))
                 st.plotly_chart(fig_hist, use_container_width=True)
                 
